@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="pers.deng.DatangTelecom.data.dao.IPlanDao">
+    <resultMap id="planResultMap" type="pers.deng.DatangTelecom.data.bean.Plan">
+        <id property="plan_Id" column="plan_Id"></id>
+        <result property="plan_Name" column="plan_name"></result>
+        <result property="status" column="status"></result>
+        <result property="is_Feedback" column="is_feedback"></result>
+        <result property="begin_Date" column="begin_date"></result>
+        <result property="end_Date" column="end_date"></result>
+        <result property="task_Id" column="task_id"></result>
+        <result property="feedback_Info" column="feedback_info"></result>
+        <result property="plan_Desc" column="plan_Desc"></result>
+    </resultMap>
+
+    <delete id="deletePlanById" parameterType="pers.deng.DatangTelecom.data.bean.Plan" >
+        delete from d_plan where plan_id=#{plan_Id}
+    </delete>
+
+    <insert id="insertPlan" parameterType="pers.deng.DatangTelecom.data.bean.Plan">
+        insert into d_PLAN (plan_name, status, is_feedback,begin_date, end_date, task_id, feedback_info, plan_desc)
+        values (#{plan_Name},'待实施','否',#{begin_Date},#{end_Date},#{task_Id},null,#{plan_Desc})
+    </insert>
+
+
+    <select id="queryPlanByTaskIdByEmpId" parameterType="java.util.Map" resultMap="planResultMap">
+        select*from (select row_number()over(order by plan_id)no,d_plan.*from d_plan where task_id
+        in(select task_id from d_task where implementor_id=#{task.implementor_Id})
+        <if test="plan.plan_Name!=null and plan.plan_Name!=''">
+            and plan_name like '%'||#{plan.plan_Name}||'%'
+        </if>
+        <if test="plan.task_Id &gt; 0 ">
+            and task_id=#{plan.task_Id}
+        </if>
+        <if test="plan.begin_Date !=null and plan.begin_Date1 !=null and begin_Date.before(plan.begin_Date1)">
+            and (begin_date between #{plan.begin_Date} and  #{plan.begin_Date1})
+        </if>
+        <if test="plan.end_Date !=null and plan.end_Date1 !=null and plan.end_Date.before(plan.end_Date1)">
+            and (end_date between #{plan.end_Date} and #{plan.end_Date})
+        </if>
+        <if test="plan.is_Feedback !=null and plan.is_Feedback!=''">
+            and is_feedback=#{plan.is_Feedback}
+        </if>
+        )temp where temp.no between #{start} and #{end}
+
+    </select>
+
+    <select id="queryPlanByPlanId" parameterType="pers.deng.DatangTelecom.data.bean.Plan" resultMap="planResultMap">
+        select*from d_plan where plan_id=#{plan_Id}
+    </select>
+
+    <update id="updatePlanStateByPlanId" parameterType="pers.deng.DatangTelecom.data.bean.Plan"  >
+        update d_plan set status=#{status},is_feedback=#{is_Feedback},feedback_info=#{feedback_Info}
+        where plan_id=#{plan_Id}
+    </update>
+
+
+
+
+</mapper>

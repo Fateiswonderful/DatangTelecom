@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="pers.deng.DatangTelecom.data.dao.IEmployeeDao">
+
+    <resultMap id="empResultMap" type="pers.deng.DatangTelecom.data.bean.Employee">
+        <id column="employee_id" property="employee_Id"/>
+        <result column="employee_name" property="employee_Name"/>
+        <result column="password" property="password"/>
+        <result column="real_Name" property="real_Name"/>
+        <result column="sex" property="sex"/>
+        <result column="birthday" property="birthday"/>
+        <result column="duty" property="duty"/>
+        <result column="enrolldate" property="enrolldate"/>
+        <result column="education" property="education"/>
+        <result column="major" property="major"/>
+        <result column="experience" property="experience"/>
+        <result column="parent_Id" property="parent_Id"/>
+
+        <association property="role" javaType="pers.deng.DatangTelecom.data.bean.Role">
+            <id property="role_Id" column="role_Id" />
+            <result property="role_Name" column="role_Name" />
+            <result property="role_Desc" column="role_Desc" />
+        </association>
+    </resultMap>
+
+    <!--登录-->
+    <select id="Stafflogin" parameterType="pers.deng.DatangTelecom.data.bean.Employee" resultMap="empResultMap">
+        select*from d_employee e inner join d_role r on e.role_id=r.role_id where employee_name=#{employee_Name} and password=#{password}
+    </select>
+
+    <!--查询所有员工-->
+    <select id="queryAllEmp" parameterType="java.util.Map" resultMap="empResultMap">
+    select * from (select row_number()over(order by employee_id)no,d_employee.* from d_employee where 1=1)temp
+    where temp.no between #{start} and #{end}
+</select>
+    <!--查询记录总数-->
+    <select id="queryRecordCount" resultType="int">
+        select count(*)from d_employee where 1=1
+    </select>
+    <!--添加用户-->
+    <insert id="adminAddEmp" parameterType="pers.deng.DatangTelecom.data.bean.Employee">
+        insert into D_EMPLOYEE(employee_name, password, real_name, sex, birthday, duty, enrolldate, education, major, experience,role_id, parent_id)
+        values (#{employee_Name},#{password},#{real_Name},#{sex}, #{birthday},#{duty},#{enrolldate},#{education},#{major},#{experience},#{role.role_Id},null)
+    </insert>
+    <!--删除用户-->
+    <delete id="adminDeleteEmp" parameterType="int">
+        delete from d_employee where employee_id=#{employee_Id}
+    </delete>
+    <!--按编号查询单个员工-->
+    <select id="adminQueryEmpByID" parameterType="pers.deng.DatangTelecom.data.bean.Employee" resultMap="empResultMap">
+        select*from d_employee e inner join d_role r on e.role_id=r.role_id where employee_id=#{employee_Id}
+    </select>
+    <!--查询所有主管-->
+    <select id="queryManager"  resultMap="empResultMap">
+        select * from d_employee e inner join d_role r on e.role_id=r.role_id  where e.ROLE_ID=2
+    </select>
+    <!--分配主管-->
+    <update id="adminAllocation" parameterType="java.util.Map">
+        update d_employee set PARENT_ID=#{parentId} where EMPLOYEE_ID=#{allocationId}
+    </update>
+
+    <!--查询主管下的所有员工总数-->
+    <select id="queryEmpCountByPrantenId" parameterType="int" resultType="int">
+        select count(*) from D_EMPLOYEE where PARENT_ID=#{employee_Id}
+    </select>
+
+    <!--查询主管下的所有员工-->
+    <select id="queryEmpByPrantenId" parameterType="java.util.Map" resultMap="empResultMap">
+        select*from (select row_number()over(order by employee_Id)no,d_employee.*from d_employee where parent_id=#{emp.employee_Id})temp
+         inner join d_role r on temp.role_id=r.role_id
+        where temp.no between #{start} and #{end}
+    </select>
+</mapper>
